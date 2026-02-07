@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BifurK8</title>
+    <link rel="icon" type="image/x-icon" href="/static/assets/favicon.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="/static/assets/favicon.ico">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ckeditor.css') }}">
+    <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/43.2.0/ckeditor5.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    background: 'hsl(var(--background))',
+                    foreground: 'hsl(var(--foreground))',
+                    primary: { DEFAULT: 'hsl(var(--primary))', foreground: 'hsl(var(--primary-foreground))' },
+                    secondary: { DEFAULT: 'hsl(var(--secondary))', foreground: 'hsl(var(--secondary-foreground))' },
+                    muted: { DEFAULT: 'hsl(var(--muted))', foreground: 'hsl(var(--muted-foreground))' },
+                    accent: { DEFAULT: 'hsl(var(--accent))', foreground: 'hsl(var(--accent-foreground))' },
+                    destructive: { DEFAULT: 'hsl(var(--destructive))', foreground: 'hsl(var(--destructive-foreground))' },
+                    border: 'hsl(var(--border))',
+                    input: 'hsl(var(--input))',
+                    ring: 'hsl(var(--ring))',
+                },
+                borderRadius: {
+                    DEFAULT: 'var(--radius)',
+                }
+            }
+        }
+    }
+    </script>
+    <style type="text/tailwindcss">
+    .viewer-content { @apply absolute inset-0 z-[1]; }
+    .viewer-content .pdf,
+    .viewer-content iframe { @apply w-full h-full border-none; }
+    .gutter { @apply bg-border cursor-col-resize; }
+    .tab { @apply px-2.5 py-1.5 mr-1.5 bg-muted cursor-pointer border border-border rounded flex items-center text-sm; }
+    .tab.active-tab { @apply bg-background font-bold border-b-transparent; }
+    .tab .tab-name { @apply text-sm text-foreground; }
+    .tab .close-tab { @apply ml-1.5 bg-transparent border-none text-destructive cursor-pointer text-sm rounded-full p-1 transition-colors hover:bg-muted; }
+    </style>
+</head>
+<body class="m-0 p-0 h-full overflow-hidden font-sans bg-background text-foreground">
+    <div class="flex h-screen w-[calc(100%-5px)]">
+        <div class="viewer relative bg-secondary h-full">
+            <div id="loading-spinner" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-10 rounded-full" style="display: none;">
+                <div class="w-10 h-10 border-4 border-muted border-t-foreground rounded-full animate-spin"></div>
+            </div>
+
+            <div class="absolute bottom-4 left-4 z-[11] cursor-pointer w-10 h-10 flex items-center justify-center bg-background/90 p-2.5 rounded-lg shadow-lg transition-all duration-300 hover:scale-110 hover:shadow-xl hover:bg-accent group border border-border" onclick="toggleSidebar()">
+                <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1.5 bg-foreground text-background text-xs rounded whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 pointer-events-none shadow-md">Settings</span>
+                <svg fill="currentColor" class="text-foreground w-5 h-5" viewBox="0 0 54 54" xmlns="http://www.w3.org/2000/svg" transform="rotate(45)"><g><path d="M51.22,21h-5.052c-0.812,0-1.481-0.447-1.792-1.197s-0.153-1.54,0.42-2.114l3.572-3.571 c0.525-0.525,0.814-1.224,0.814-1.966c0-0.743-0.289-1.441-0.814-1.967l-4.553-4.553c-1.05-1.05-2.881-1.052-3.933,0l-3.571,3.571 c-0.574,0.573-1.366,0.733-2.114,0.421C33.447,9.313,33,8.644,33,7.832V2.78C33,1.247,31.753,0,30.22,0H23.78 C22.247,0,21,1.247,21,2.78v5.052c0,0.812-0.447,1.481-1.197,1.792c-0.748,0.313-1.54,0.152-2.114-0.421l-3.571-3.571 c-1.052-1.052-2.883-1.05-3.933,0l-4.553,4.553c-0.525,0.525-0.814,1.224-0.814,1.967c0,0.742,0.289,1.44,0.814,1.966l3.572,3.571 c0.573,0.574,0.73,1.364,0.42,2.114S8.644,21,7.832,21H2.78C1.247,21,0,22.247,0,23.78v6.439C0,31.753,1.247,33,2.78,33h5.052 c0.812,0,1.481,0.447,1.792,1.197s0.153,1.54-0.42,2.114l-3.572,3.571c-0.525,0.525-0.814,1.224-0.814,1.966 c0,0.743,0.289,1.441,0.814,1.967l4.553,4.553c1.051,1.051,2.881,1.053,3.933,0l3.571-3.572c0.574-0.573,1.363-0.731,2.114-0.42 c0.75,0.311,1.197,0.98,1.197,1.792v5.052c0,1.533,1.247,2.78,2.78,2.78h6.439c1.533,0,2.78-1.247,2.78-2.78v-5.052 c0-0.812,0.447-1.481,1.197-1.792c0.751-0.312,1.54-0.153,2.114,0.42l3.571,3.572c1.052,1.052,2.883,1.05,3.933,0l4.553-4.553 c0.525-0.525,0.814-1.224,0.814-1.967c0-0.742-0.289-1.44-0.814-1.966l-3.572-3.571c-0.573-0.574-0.73-1.364-0.42-2.114 S45.356,33,46.168,33h5.052c1.533,0,2.78-1.247,2.78-2.78V23.78C54,22.247,52.753,21,51.22,21z M52,30.22 C52,30.65,51.65,31,51.22,31h-5.052c-1.624,0-3.019,0.932-3.64,2.432c-0.622,1.5-0.295,3.146,0.854,4.294l3.572,3.571 c0.305,0.305,0.305,0.8,0,1.104l-4.553,4.553c-0.304,0.304-0.799,0.306-1.104,0l-3.571-3.572c-1.149-1.149-2.794-1.474-4.294-0.854 c-1.5,0.621-2.432,2.016-2.432,3.64v5.052C31,51.65,30.65,52,30.22,52H23.78C23.35,52,23,51.65,23,51.22v-5.052 c0-1.624-0.932-3.019-2.432-3.64c-0.503-0.209-1.021-0.311-1.533-0.311c-1.014,0-1.997,0.4-2.761,1.164l-3.571,3.572 c-0.306,0.306-0.801,0.304-1.104,0l-4.553-4.553c-0.305-0.305-0.305-0.8,0-1.104l3.572-3.571c1.148-1.148,1.476-2.794,0.854-4.294 C10.851,31.932,9.456,31,7.832,31H2.78C2.35,31,2,30.65,2,30.22V23.78C2,23.35,2.35,23,2.78,23h5.052 c1.624,0,3.019-0.932,3.64-2.432c0.622-1.5,0.295-3.146-0.854-4.294l-3.572-3.571c-0.305-0.305-0.305-0.8,0-1.104l4.553-4.553 c0.304-0.305,0.799-0.305,1.104,0l3.571,3.571c1.147,1.147,2.792,1.476,4.294,0.854C22.068,10.851,23,9.456,23,7.832V2.78 C23,2.35,23.35,2,23.78,2h6.439C30.65,2,31,2.35,31,2.78v5.052c0,1.624,0.932,3.019,2.432,3.64 c1.502,0.622,3.146,0.294,4.294-0.854l3.571-3.571c0.306-0.305,0.801-0.305,1.104,0l4.553,4.553c0.305,0.305,0.305,0.8,0,1.104 l-3.572,3.571c-1.148,1.148-1.476,2.794-0.854,4.294c0.621,1.5,2.016,2.432,3.64,2.432h5.052C51.65,23,52,23.35,52,23.78V30.22z"></path><path d="M27,18c-4.963,0-9,4.037-9,9s4.037,9,9,9s9-4.037,9-9S31.963,18,27,18z M27,34c-3.859,0-7-3.141-7-7s3.141-7,7-7 s7,3.141,7,7S30.859,34,27,34z"></path></g></svg>
+            </div>
+
+            <div id="sidebar" class="fixed top-0 left-0 w-[320px] h-full bg-background/95 backdrop-blur-md pt-16 z-10 shadow-2xl overflow-y-auto -translate-x-full transition-transform duration-300 border-r border-border">
+                <div id="sidebar-content"></div>
+            </div>
+        </div>
+
+        <div class="editor bg-background overflow-x-auto overflow-y-hidden relative">
+            <div class="main-container">
+                <div class="editor-container editor-container_document-editor editor-container_include-minimap editor-container_include-style" id="editor-container">
+                    <div class="editor-container__menu-bar" id="editor-menu-bar"></div>
+                    <div class="editor-container__toolbar" id="editor-toolbar"></div>
+                    <div class="flex items-center p-1.5 bg-secondary border-b border-border overflow-x-auto whitespace-nowrap relative" id="editor-tabs">
+                        <button id="add-tab" class="cursor-pointer px-2 py-1 text-sm bg-muted border border-border rounded hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none">+</button>
+                    </div>
+                    <div class="editor-container__minimap-wrapper">
+                        <div class="editor-container__editor-wrapper">
+                            <div class="editor-container__editor"><div id="editor"></div></div>
+                        </div>
+                        <div class="editor-container__sidebar editor-container__sidebar_minimap"><div id="editor-minimap"></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/split.js/dist/split.min.js"></script>
+    <script type="importmap">
+    {
+        "imports": {
+            "ckeditor5": "https://cdn.ckeditor.com/ckeditor5/43.2.0/ckeditor5.js",
+            "ckeditor5/": "https://cdn.ckeditor.com/ckeditor5/43.2.0/"
+        }
+    }
+    </script>
+    <script src="{{ url_for('static', filename='js/utils/languages.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/components/modal.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/config/sidebarItems.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/components/sidebar.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/layout/split-view.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/views/viewer.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/utils/upload.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/utils/export.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/ckeditor/index.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+services:
+  nginx:
+    build:
+      context: ./nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - python-server
+      - node-server
+    networks:
+      - app-network
+
+  python-server:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    networks:
+      - app-network
+
+  node-server:
+    build:
+      context: ./pdf-converter
+      dockerfile: Dockerfile
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
